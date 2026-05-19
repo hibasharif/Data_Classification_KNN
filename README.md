@@ -9,11 +9,7 @@ It includes a fully visual pipeline for training, evaluation, and real-time pred
 
 ## 🚀 Live Demo
 
-> *(Add your GitHub Pages link here after deployment)*
-
-```
-https://your-username.github.io/your-repo-name/
-```
+> *(https://codepen.io/Hiba-Sharif-the-vuer/pen/pvNePOZ)*
 
 ---
 
