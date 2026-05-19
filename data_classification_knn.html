@@ -1,0 +1,386 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#app{font-family:var(--font-sans);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+#hdr{background:#185FA5;padding:14px 18px;display:flex;align-items:center;gap:12px}
+#hdr-icon{width:38px;height:38px;border-radius:50%;background:#378ADD;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+#hdr-title{font-size:15px;font-weight:500;color:#fff}
+#hdr-sub{font-size:11px;color:#B5D4F4}
+#hdr-badge{margin-left:auto;font-size:11px;padding:3px 10px;border-radius:20px;background:#378ADD;color:#E6F1FB;font-weight:500}
+#tabs{display:flex;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;transition:all .25s;white-space:nowrap}
+.tab.active{color:#185FA5;border-bottom-color:#185FA5;background:var(--color-background-primary)}
+.tab:hover:not(.active){background:var(--color-background-primary);color:var(--color-text-primary)}
+.panel{display:none;padding:18px;animation:fadeIn .35s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;text-align:center}
+.stat-val{font-size:20px;font-weight:500;color:#185FA5}
+.stat-lbl{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+canvas{border-radius:var(--border-radius-md);display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ctrl-lbl{font-size:13px;color:var(--color-text-secondary);min-width:90px}
+.ctrl-val{font-size:13px;font-weight:500;color:#185FA5;min-width:30px}
+.pipeline{display:flex;align-items:center;gap:0;margin-bottom:16px;overflow-x:auto}
+.pipe-step{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;text-align:center;flex:1;min-width:90px;transition:all .4s;cursor:default}
+.pipe-step.active-step{background:#E6F1FB;border-color:#378ADD}
+.pipe-step.done-step{background:#E1F5EE;border-color:#1D9E75}
+.pipe-icon{font-size:18px;margin-bottom:4px}
+.pipe-title{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+.pipe-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.pipe-arrow{color:var(--color-text-tertiary);padding:0 4px;font-size:16px;flex-shrink:0}
+.run-btn{padding:9px 20px;border-radius:var(--border-radius-md);border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s,transform .1s;display:flex;align-items:center;gap:6px}
+.run-btn:hover{background:#0C447C}
+.run-btn:active{transform:scale(.97)}
+.run-btn:disabled{background:var(--color-border-secondary);cursor:not-allowed}
+.log-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;font-family:var(--font-mono);font-size:12px;color:var(--color-text-secondary);min-height:80px;max-height:160px;overflow-y:auto;line-height:1.7}
+.log-box span{display:block;animation:fadeIn .3s ease}
+.log-green{color:#1D9E75}
+.log-blue{color:#185FA5}
+.log-amber{color:#BA7517}
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}
+.metric-title{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.metric-bar-wrap{height:6px;background:var(--color-border-tertiary);border-radius:3px;margin-top:6px;overflow:hidden}
+.metric-bar{height:100%;border-radius:3px;transition:width 1s ease}
+.cm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:10px}
+.cm-cell{border-radius:6px;padding:8px 4px;text-align:center;font-size:12px;font-weight:500;transition:all .6s}
+.cm-header{background:transparent;font-size:10px;color:var(--color-text-tertiary);display:flex;align-items:center;justify-content:center}
+.predict-form{display:flex;flex-direction:column;gap:12px}
+.feature-row{display:flex;align-items:center;gap:10px}
+.feature-name{font-size:13px;color:var(--color-text-secondary);min-width:110px}
+.feature-slider{flex:1}
+.feature-val{font-size:13px;font-weight:500;min-width:38px;text-align:right;color:#185FA5}
+.predict-result{border-radius:var(--border-radius-md);padding:14px 16px;margin-top:14px;text-align:center;transition:all .5s;border:0.5px solid var(--color-border-tertiary)}
+.result-species{font-size:22px;font-weight:500;margin-bottom:4px}
+.result-conf{font-size:13px;color:var(--color-text-secondary)}
+.conf-bar-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.conf-label{font-size:12px;min-width:80px;color:var(--color-text-secondary)}
+.conf-bar-bg{flex:1;height:8px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden}
+.conf-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.conf-pct{font-size:12px;min-width:36px;text-align:right;color:var(--color-text-secondary)}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">DecodeLabs Project 2 — Data Classification using KNN on the Iris dataset</h2>
+
+<div id="app">
+<div id="hdr">
+  <div id="hdr-icon">🌸</div>
+  <div><div id="hdr-title">DecodeLabs AI — Project 2</div><div id="hdr-sub">Data Classification · KNN · Iris Dataset</div></div>
+  <div id="hdr-badge">Supervised Learning</div>
+</div>
+
+<div id="tabs">
+  <div class="tab active" onclick="switchTab('dataset')"><i class="ti ti-table" style="font-size:14px;margin-right:5px" aria-hidden="true"></i>Dataset</div>
+  <div class="tab" onclick="switchTab('train')"><i class="ti ti-cpu" style="font-size:14px;margin-right:5px" aria-hidden="true"></i>Train model</div>
+  <div class="tab" onclick="switchTab('metrics')"><i class="ti ti-chart-bar" style="font-size:14px;margin-right:5px" aria-hidden="true"></i>Metrics</div>
+  <div class="tab" onclick="switchTab('predict')"><i class="ti ti-wand" style="font-size:14px;margin-right:5px" aria-hidden="true"></i>Predict</div>
+</div>
+
+<div id="tab-dataset" class="panel active">
+  <div class="section-label">Iris benchmark — raw material</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val">150</div><div class="stat-lbl">Samples</div></div>
+    <div class="stat-card"><div class="stat-val">3</div><div class="stat-lbl">Classes</div></div>
+    <div class="stat-card"><div class="stat-val">4</div><div class="stat-lbl">Features</div></div>
+    <div class="stat-card"><div class="stat-val">50</div><div class="stat-lbl">Per class</div></div>
+  </div>
+  <div class="section-label">Feature scatter plot — petal length vs petal width</div>
+  <canvas id="scatter" width="620" height="260"></canvas>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>Setosa</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Versicolor</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Virginica</div>
+  </div>
+</div>
+
+<div id="tab-train" class="panel">
+  <div class="section-label">Pipeline</div>
+  <div class="pipeline">
+    <div class="pipe-step done-step" id="ps0"><div class="pipe-icon"><i class="ti ti-database" aria-hidden="true"></i></div><div class="pipe-title">Load data</div><div class="pipe-sub">150 samples</div></div>
+    <div class="pipe-arrow">›</div>
+    <div class="pipe-step" id="ps1"><div class="pipe-icon"><i class="ti ti-arrows-split" aria-hidden="true"></i></div><div class="pipe-title">Split</div><div class="pipe-sub">80 / 20</div></div>
+    <div class="pipe-arrow">›</div>
+    <div class="pipe-step" id="ps2"><div class="pipe-icon"><i class="ti ti-adjustments" aria-hidden="true"></i></div><div class="pipe-title">Scale</div><div class="pipe-sub">StandardScaler</div></div>
+    <div class="pipe-arrow">›</div>
+    <div class="pipe-step" id="ps3"><div class="pipe-icon"><i class="ti ti-cpu" aria-hidden="true"></i></div><div class="pipe-title">Fit KNN</div><div class="pipe-sub">k neighbors</div></div>
+    <div class="pipe-arrow">›</div>
+    <div class="pipe-step" id="ps4"><div class="pipe-icon"><i class="ti ti-check" aria-hidden="true"></i></div><div class="pipe-title">Evaluate</div><div class="pipe-sub">F1 + matrix</div></div>
+  </div>
+
+  <div class="ctrl-row">
+    <span class="ctrl-lbl">K neighbors</span>
+    <input type="range" min="1" max="15" value="5" step="1" id="k-slider" style="flex:1;max-width:200px" oninput="document.getElementById('k-val').textContent=this.value">
+    <span class="ctrl-val" id="k-val">5</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-lbl">Test split %</span>
+    <input type="range" min="10" max="40" value="20" step="5" id="split-slider" style="flex:1;max-width:200px" oninput="document.getElementById('split-val').textContent=this.value+'%'">
+    <span class="ctrl-val" id="split-val">20%</span>
+  </div>
+  <div style="margin-bottom:14px">
+    <button class="run-btn" id="train-btn" onclick="runTraining()"><i class="ti ti-player-play" aria-hidden="true"></i>Run training pipeline</button>
+  </div>
+  <div class="section-label">Training log</div>
+  <div class="log-box" id="log-box"><span style="color:var(--color-text-tertiary)">Press "Run training pipeline" to start...</span></div>
+</div>
+
+<div id="tab-metrics" class="panel">
+  <div class="section-label">Model performance</div>
+  <div class="metrics-grid" id="metrics-grid">
+    <div class="metric-card"><div class="metric-title">Accuracy</div><div class="metric-val" id="m-acc" style="color:#185FA5">—</div><div class="metric-bar-wrap"><div class="metric-bar" id="b-acc" style="width:0%;background:#185FA5"></div></div></div>
+    <div class="metric-card"><div class="metric-title">F1 score (macro)</div><div class="metric-val" id="m-f1" style="color:#1D9E75">—</div><div class="metric-bar-wrap"><div class="metric-bar" id="b-f1" style="width:0%;background:#1D9E75"></div></div></div>
+    <div class="metric-card"><div class="metric-title">Precision</div><div class="metric-val" id="m-prec" style="color:#D85A30">—</div><div class="metric-bar-wrap"><div class="metric-bar" id="b-prec" style="width:0%;background:#D85A30"></div></div></div>
+    <div class="metric-card"><div class="metric-title">Recall</div><div class="metric-val" id="m-rec" style="color:#BA7517">—</div><div class="metric-bar-wrap"><div class="metric-bar" id="b-rec" style="width:0%;background:#BA7517"></div></div></div>
+  </div>
+  <div class="section-label" style="margin-top:14px">Confusion matrix</div>
+  <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px">Rows = actual · Columns = predicted</div>
+  <div class="cm-grid" id="cm-grid">
+    <div class="cm-header"></div><div class="cm-header">Setosa</div><div class="cm-header">Versicolor</div><div class="cm-header">Virginica</div>
+    <div class="cm-header" style="writing-mode:initial">Setosa</div><div class="cm-cell" id="cm00">—</div><div class="cm-cell" id="cm01">—</div><div class="cm-cell" id="cm02">—</div>
+    <div class="cm-header">Versicolor</div><div class="cm-cell" id="cm10">—</div><div class="cm-cell" id="cm11">—</div><div class="cm-cell" id="cm12">—</div>
+    <div class="cm-header">Virginica</div><div class="cm-cell" id="cm20">—</div><div class="cm-cell" id="cm21">—</div><div class="cm-cell" id="cm22">—</div>
+  </div>
+  <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px">Train the model first to see results.</div>
+</div>
+
+<div id="tab-predict" class="panel">
+  <div class="section-label">Live prediction — enter flower measurements</div>
+  <div class="predict-form">
+    <div class="feature-row">
+      <span class="feature-name">Sepal length</span>
+      <input type="range" class="feature-slider" min="4.3" max="7.9" step="0.1" value="5.8" id="f0" oninput="updatePredict()">
+      <span class="feature-val" id="fv0">5.8 cm</span>
+    </div>
+    <div class="feature-row">
+      <span class="feature-name">Sepal width</span>
+      <input type="range" class="feature-slider" min="2.0" max="4.4" step="0.1" value="3.0" id="f1" oninput="updatePredict()">
+      <span class="feature-val" id="fv1">3.0 cm</span>
+    </div>
+    <div class="feature-row">
+      <span class="feature-name">Petal length</span>
+      <input type="range" class="feature-slider" min="1.0" max="6.9" step="0.1" value="3.8" id="f2" oninput="updatePredict()">
+      <span class="feature-val" id="fv2">3.8 cm</span>
+    </div>
+    <div class="feature-row">
+      <span class="feature-name">Petal width</span>
+      <input type="range" class="feature-slider" min="0.1" max="2.5" step="0.1" value="1.2" id="f3" oninput="updatePredict()">
+      <span class="feature-val" id="fv3">1.2 cm</span>
+    </div>
+  </div>
+  <div class="predict-result" id="predict-result">
+    <div class="result-species" id="pred-species" style="color:#185FA5">— Train model first —</div>
+    <div class="result-conf" id="pred-conf">Adjust sliders after training to predict</div>
+    <div id="conf-bars"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const SPECIES = ['Setosa','Versicolor','Virginica'];
+const COLORS = ['#185FA5','#D85A30','#1D9E75'];
+const BG = ['#E6F1FB','#FAECE7','#E1F5EE'];
+
+const IRIS_PL = [1.4,1.4,1.3,1.5,1.4,1.7,1.4,1.5,1.4,1.5,1.5,1.6,1.4,1.1,1.2,1.5,1.3,1.4,1.7,1.5,1.7,1.5,1.0,1.7,1.9,1.6,1.6,1.5,1.4,1.6,1.6,1.5,1.5,1.4,1.5,1.2,1.3,1.4,1.3,1.5,1.3,1.3,1.3,1.6,1.9,1.4,1.6,1.4,1.5,1.4,4.7,4.5,4.9,4.0,4.6,4.5,4.7,3.3,4.6,3.9,3.5,4.2,4.0,4.7,3.6,4.4,4.5,4.1,4.5,3.9,4.8,4.0,4.9,4.7,4.3,4.4,4.8,5.0,4.5,3.5,3.8,3.7,3.9,5.1,4.5,4.5,4.7,4.4,4.1,4.0,4.4,4.6,4.0,3.3,4.2,4.2,4.2,4.3,3.0,4.1,6.0,5.1,5.9,5.6,5.8,6.6,4.5,6.3,5.8,6.1,5.1,5.3,5.5,5.0,5.1,5.3,5.5,6.7,6.9,5.0,5.7,4.9,6.7,4.9,5.7,6.0,4.8,4.9,5.6,5.8,6.1,6.4,5.6,5.1,5.6,6.1,5.6,5.5,4.8,5.4,5.6,5.1,5.9,5.7,5.2,5.0,5.2,5.4,5.1];
+const IRIS_PW = [0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.2,0.2,0.2,0.1,0.2,0.3,0.3,0.3,0.2,0.6,0.4,0.3,0.2,0.2,0.2,0.2,1.4,1.5,1.5,1.3,1.5,1.3,1.6,1.0,1.3,1.4,1.0,1.5,1.0,1.4,1.3,1.4,1.5,1.0,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1.0,1.1,1.0,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1.0,1.3,1.2,1.3,1.3,1.1,1.3,2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2.0,1.9,2.1,2.0,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2.0,2.0,1.8,2.1,1.8,1.8,1.8,2.1,1.6,1.9,2.0,2.2,1.5,1.4,2.3,2.4,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2.0,2.3,1.8];
+const IRIS_Y  = Array(50).fill(0).concat(Array(50).fill(1),Array(50).fill(2));
+const IRIS_SL = [5.1,4.9,4.7,4.6,5.0,5.4,4.6,5.0,4.4,4.9,5.4,4.8,4.8,4.3,5.8,5.7,5.4,5.1,5.7,5.1,5.4,5.1,4.6,5.1,4.8,5.0,5.0,5.2,5.2,4.7,4.8,5.4,5.2,5.5,4.9,5.0,5.5,4.9,4.4,5.1,5.0,4.5,4.4,5.0,5.1,4.8,5.1,4.6,5.3,5.0,7.0,6.4,6.9,5.5,6.5,5.7,6.3,4.9,6.6,5.2,5.0,5.9,6.0,6.1,5.6,6.7,5.6,5.8,6.2,5.6,5.9,6.1,6.3,6.1,6.4,6.6,6.8,6.7,6.0,5.7,5.5,5.5,5.8,6.0,5.4,6.0,6.7,6.3,5.6,5.5,5.5,6.1,5.8,5.0,5.6,5.7,5.7,6.2,5.1,5.7,6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6.4,6.8,5.7,5.8,6.4,6.5,7.7,7.7,6.0,6.9,5.6,7.7,6.3,6.7,7.2,6.2,6.1,6.4,7.2,7.4,7.9,6.4,6.3,6.1,7.7,6.3,6.4,6.0,6.9,6.7,6.9,5.8,6.8,6.7,6.7,6.3,6.5,6.2,5.9];
+const IRIS_SW = [3.5,3.0,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4,3.0,3.0,4.0,4.4,3.9,3.5,3.8,3.8,3.4,3.7,3.6,3.3,3.4,3.0,3.4,3.5,3.4,3.2,3.1,3.4,4.1,4.2,3.1,3.2,3.5,3.6,3.0,3.4,3.5,2.3,3.2,3.5,3.8,3.0,3.8,3.2,3.7,3.3,3.2,3.2,3.1,2.3,2.8,2.8,3.3,2.4,2.9,2.7,2.0,3.0,2.2,2.9,2.9,3.1,3.0,2.7,2.2,2.5,3.2,2.8,2.5,2.8,2.9,3.0,2.8,3.0,2.9,2.6,2.4,2.4,2.7,2.7,3.0,3.4,3.1,2.3,3.0,2.5,2.6,3.0,2.6,2.3,2.7,3.0,2.9,2.9,2.5,2.8,3.3,2.7,3.0,2.9,3.0,3.0,2.5,2.9,2.5,3.6,3.2,2.7,3.0,2.5,2.8,3.2,3.0,3.8,2.6,2.2,3.2,2.8,2.8,2.7,3.3,3.2,2.8,3.0,2.8,3.0,2.8,3.8,2.8,2.8,2.6,3.0,3.4,3.1,3.0,3.1,3.1,3.1,2.7,3.2,3.3,3.0,2.5,3.0,3.4,3.0];
+
+let trained = false, knnK = 5, trainIdx = [], testIdx = [];
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const ti = ['dataset','train','metrics','predict'].indexOf(name);
+  document.querySelectorAll('.tab')[ti].classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function drawScatter() {
+  const c = document.getElementById('scatter');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height, pad = 36;
+  ctx.clearRect(0, 0, W, H);
+  const minX = 0.9, maxX = 7.1, minY = -0.1, maxY = 2.7;
+  const toX = v => pad + (v - minX) / (maxX - minX) * (W - pad * 2);
+  const toY = v => H - pad - (v - minY) / (maxY - minY) * (H - pad * 2);
+  ctx.strokeStyle = 'rgba(128,128,128,0.15)';
+  ctx.lineWidth = 0.5;
+  for (let g = 1; g <= 6; g++) {
+    const x = toX(g); ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke();
+    const lbl = g.toFixed(0);
+    ctx.fillStyle = '#888'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(lbl, x, H - pad + 14);
+  }
+  for (let g = 0; g <= 2.5; g += 0.5) {
+    const y = toY(g); ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+    ctx.fillStyle = '#888'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(g.toFixed(1), pad - 4, y + 4);
+  }
+  ctx.fillStyle = '#aaa'; ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('Petal length (cm)', W / 2, H - 2);
+  ctx.save(); ctx.translate(11, H / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center'; ctx.fillText('Petal width (cm)', 0, 0); ctx.restore();
+  for (let i = 0; i < 150; i++) {
+    const x = toX(IRIS_PL[i]), y = toY(IRIS_PW[i]);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[IRIS_Y[i]] + 'cc'; ctx.fill();
+    ctx.strokeStyle = COLORS[IRIS_Y[i]]; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+}
+
+function dist(a, b) {
+  return Math.sqrt(a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0));
+}
+
+function standardize(data) {
+  const n = data[0].length;
+  const means = Array(n).fill(0), stds = Array(n).fill(0);
+  data.forEach(r => r.forEach((v, i) => means[i] += v));
+  means.forEach((m, i) => means[i] = m / data.length);
+  data.forEach(r => r.forEach((v, i) => stds[i] += (v - means[i]) ** 2));
+  stds.forEach((s, i) => stds[i] = Math.sqrt(s / data.length) || 1);
+  return { means, stds, scaled: data.map(r => r.map((v, i) => (v - means[i]) / stds[i])) };
+}
+
+let scaler = null, trainScaled = [], trainLabels = [];
+
+function knnPredict(testVec, k) {
+  const dists = trainScaled.map((tr, i) => ({ d: dist(tr, testVec), lbl: trainLabels[i] }));
+  dists.sort((a, b) => a.d - b.d);
+  const votes = [0, 0, 0];
+  dists.slice(0, k).forEach(nb => votes[nb.lbl]++);
+  const total = dists.slice(0, k).length;
+  return { pred: votes.indexOf(Math.max(...votes)), probs: votes.map(v => v / total) };
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function log(msg, cls = '') {
+  const box = document.getElementById('log-box');
+  const span = document.createElement('span');
+  span.innerHTML = msg; if (cls) span.className = cls;
+  box.appendChild(span); box.scrollTop = box.scrollHeight;
+}
+
+function setPipeStep(idx) {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('ps' + i);
+    el.classList.remove('active-step', 'done-step');
+    if (i < idx) el.classList.add('done-step');
+    else if (i === idx) el.classList.add('active-step');
+  }
+}
+
+async function runTraining() {
+  const btn = document.getElementById('train-btn');
+  btn.disabled = true;
+  document.getElementById('log-box').innerHTML = '';
+  knnK = parseInt(document.getElementById('k-slider').value);
+  const splitPct = parseInt(document.getElementById('split-slider').value) / 100;
+  const indices = Array.from({ length: 150 }, (_, i) => i).sort(() => Math.random() - 0.5);
+  testIdx = indices.slice(0, Math.floor(150 * splitPct));
+  trainIdx = indices.slice(Math.floor(150 * splitPct));
+
+  setPipeStep(0);
+  log('<span class="log-blue">[ 1/5 ]</span> Loading Iris dataset...'); await sleep(400);
+  log('<span class="log-green">✓ 150 samples loaded · 4 features · 3 classes</span>'); await sleep(300);
+
+  setPipeStep(1);
+  log(`<span class="log-blue">[ 2/5 ]</span> Splitting dataset (test = ${Math.round(splitPct*100)}%)...`); await sleep(400);
+  log(`<span class="log-green">✓ Train: ${trainIdx.length} · Test: ${testIdx.length} · shuffle=True</span>`); await sleep(300);
+
+  setPipeStep(2);
+  log('<span class="log-blue">[ 3/5 ]</span> Applying StandardScaler...'); await sleep(400);
+  const rawTrain = trainIdx.map(i => [IRIS_SL[i], IRIS_SW[i], IRIS_PL[i], IRIS_PW[i]]);
+  scaler = standardize(rawTrain);
+  trainScaled = scaler.scaled;
+  trainLabels = trainIdx.map(i => IRIS_Y[i]);
+  log(`<span class="log-green">✓ Mean ≈ 0, Variance ≈ 1 · features normalized</span>`); await sleep(300);
+
+  setPipeStep(3);
+  log(`<span class="log-blue">[ 4/5 ]</span> Fitting KNeighborsClassifier(n_neighbors=${knnK})...`); await sleep(500);
+  log(`<span class="log-green">✓ Model fitted on ${trainIdx.length} training samples</span>`); await sleep(300);
+
+  setPipeStep(4);
+  log('<span class="log-blue">[ 5/5 ]</span> Evaluating on test set...'); await sleep(400);
+  const testRaw = testIdx.map(i => [IRIS_SL[i], IRIS_SW[i], IRIS_PL[i], IRIS_PW[i]]);
+  const testScaled = testRaw.map(r => r.map((v, i) => (v - scaler.means[i]) / scaler.stds[i]));
+  const actual = testIdx.map(i => IRIS_Y[i]);
+  const preds = testScaled.map(tv => knnPredict(tv, knnK).pred);
+
+  let correct = preds.filter((p, i) => p === actual[i]).length;
+  const accuracy = correct / preds.length;
+  const cm = [[0,0,0],[0,0,0],[0,0,0]];
+  preds.forEach((p, i) => cm[actual[i]][p]++);
+  const prec = [0,1,2].map(c => {
+    const tp = cm[c][c], fp = [0,1,2].reduce((s, r) => s + (r !== c ? cm[r][c] : 0), 0);
+    return tp + fp > 0 ? tp / (tp + fp) : 0;
+  });
+  const rec = [0,1,2].map(c => {
+    const tp = cm[c][c], fn = [0,1,2].reduce((s, col) => s + (col !== c ? cm[c][col] : 0), 0);
+    return tp + fn > 0 ? tp / (tp + fn) : 0;
+  });
+  const f1 = prec.map((p, i) => p + rec[i] > 0 ? 2 * p * rec[i] / (p + rec[i]) : 0);
+  const macroF1 = f1.reduce((a, b) => a + b) / 3;
+  const macroPrec = prec.reduce((a, b) => a + b) / 3;
+  const macroRec = rec.reduce((a, b) => a + b) / 3;
+
+  log(`<span class="log-green">✓ Accuracy: ${(accuracy*100).toFixed(1)}% · F1: ${(macroF1*100).toFixed(1)}%</span>`);
+  log(`<span class="log-amber">Pipeline complete. Switch to "Metrics" or "Predict" tab.</span>`);
+
+  document.getElementById('m-acc').textContent = (accuracy*100).toFixed(1) + '%';
+  document.getElementById('m-f1').textContent = (macroF1*100).toFixed(1) + '%';
+  document.getElementById('m-prec').textContent = (macroPrec*100).toFixed(1) + '%';
+  document.getElementById('m-rec').textContent = (macroRec*100).toFixed(1) + '%';
+  setTimeout(() => {
+    document.getElementById('b-acc').style.width = (accuracy*100).toFixed(1)+'%';
+    document.getElementById('b-f1').style.width = (macroF1*100).toFixed(1)+'%';
+    document.getElementById('b-prec').style.width = (macroPrec*100).toFixed(1)+'%';
+    document.getElementById('b-rec').style.width = (macroRec*100).toFixed(1)+'%';
+  }, 100);
+
+  const labels = ['cm00','cm01','cm02','cm10','cm11','cm12','cm20','cm21','cm22'];
+  for (let r = 0; r < 3; r++) for (let col = 0; col < 3; col++) {
+    const el = document.getElementById(`cm${r}${col}`);
+    el.textContent = cm[r][col];
+    el.style.background = r === col ? BG[r] : (cm[r][col] > 0 ? '#FCEBEB' : 'var(--color-background-secondary)');
+    el.style.color = r === col ? COLORS[r] : (cm[r][col] > 0 ? '#A32D2D' : 'var(--color-text-tertiary)');
+  }
+  trained = true;
+  btn.disabled = false;
+  updatePredict();
+}
+
+function updatePredict() {
+  const fvals = [0,1,2,3].map(i => parseFloat(document.getElementById('f'+i).value));
+  [0,1,2,3].forEach(i => {
+    document.getElementById('fv'+i).textContent = fvals[i].toFixed(1) + ' cm';
+  });
+  if (!trained) return;
+  const scaled = fvals.map((v, i) => (v - scaler.means[i]) / scaler.stds[i]);
+  const { pred, probs } = knnPredict(scaled, knnK);
+  const res = document.getElementById('predict-result');
+  res.style.background = BG[pred]; res.style.borderColor = COLORS[pred];
+  document.getElementById('pred-species').style.color = COLORS[pred];
+  document.getElementById('pred-species').textContent = '🌸 ' + SPECIES[pred];
+  document.getElementById('pred-conf').textContent = `Confidence: ${(probs[pred]*100).toFixed(0)}% (k=${knnK})`;
+  const bars = document.getElementById('conf-bars');
+  bars.innerHTML = '';
+  probs.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'conf-bar-row';
+    row.innerHTML = `<span class="conf-label">${SPECIES[i]}</span><div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${(p*100).toFixed(0)}%;background:${COLORS[i]}"></div></div><span class="conf-pct">${(p*100).toFixed(0)}%</span>`;
+    bars.appendChild(row);
+  });
+}
+
+drawScatter();
+</script>
